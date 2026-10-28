@@ -133,3 +133,62 @@ html,body{height:100%;height:100dvh;overflow:hidden}
   .photo-frame{margin:8px auto 0;width:min(86vw,1100px)}
   .save-photo{position:absolute;right:max(28px,env(safe-area-inset-right));bottom:max(28px,env(safe-area-inset-bottom))}
 }
+
+/* v4 — icon-only character lineup and iPadOS photo/video sharing. */
+.welcome{
+  top:46%;width:min(608px,calc(100% - 28px));max-height:calc(100dvh - 110px);
+  padding:22px;gap:18px;border-radius:28px;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:none;background:#21182cdd
+}
+.welcome::-webkit-scrollbar{display:none}
+.lineup-grid{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(6px,1.4vw,12px)}
+.lineup-choice{
+  position:relative;display:grid;place-items:center;aspect-ratio:1.05;min-width:0;padding:7px;
+  border:2px solid #ffffff3d;border-radius:17px;background:#0f0a1f9c;
+  box-shadow:inset 0 1px 0 #ffffff15;touch-action:manipulation;overflow:hidden
+}
+.lineup-choice img{width:100%;height:100%;object-fit:contain;opacity:.4;filter:grayscale(.65) brightness(.7);transform:scale(.86);transition:opacity .18s,filter .18s,transform .18s;pointer-events:none}
+.lineup-choice[aria-pressed="true"]{border-color:#ffe4a6;background:#ffefd726;box-shadow:0 0 0 1px #fff6de44,inset 0 1px 0 #ffffff44}
+.lineup-choice[aria-pressed="true"] img{opacity:1;filter:none;transform:scale(1)}
+.lineup-check{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:#f9d58b;color:#50304c;display:grid;place-items:center;opacity:0;transform:scale(.7);transition:opacity .16s,transform .16s;pointer-events:none}
+.lineup-check svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.lineup-choice[aria-pressed="true"] .lineup-check{opacity:1;transform:scale(1)}
+.launch-actions{display:flex;align-items:center;justify-content:center;gap:20px}
+.welcome .start-camera{width:78px;height:78px;min-height:0}
+.welcome .start-camera svg{width:38px;height:38px}
+.welcome .demo-link{width:48px;height:48px}
+.welcome .selector-close{position:relative;z-index:2;align-self:flex-end;flex:none;margin:-10px -8px -10px 0;display:grid;place-items:center;width:36px;height:36px;border:1px solid #ffffff66;border-radius:50%;background:#171027de;color:white}
+.welcome .selector-close svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.welcome .selector-close[hidden]{display:none}
+.welcome.is-editing .launch-actions{display:none}
+.welcome.is-editing{padding-top:19px;padding-bottom:24px}
+.welcome.is-editing .lineup-grid{margin-top:0}
+.review-actions{display:flex;align-self:center;align-items:center;justify-content:center;gap:18px}
+.photo-review .save-photo{position:static;width:70px;height:70px;min-height:0;border:0;cursor:pointer}
+.save-photo .download-icon{display:none}
+.save-photo.download-only .share-icon{display:none}
+.save-photo.download-only .download-icon{display:block}
+.download-photo{display:grid;place-items:center;width:49px;height:49px;border:1px solid #ffffff80;border-radius:50%;background:#ffffff20;color:#fff9ed;text-decoration:none}
+.download-photo svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:420px){
+  .welcome{width:calc(100% - 20px);padding:14px;gap:11px;top:44%}
+  .lineup-grid{gap:6px}
+  .lineup-choice{padding:4px;border-radius:12px}
+  .lineup-check{width:20px;height:20px;top:2px;right:2px}
+  .lineup-check svg{width:14px;height:14px}
+  .welcome .start-camera{width:68px;height:68px}
+  .welcome .demo-link{width:42px;height:42px}
+}
+@media(max-height:570px){
+  .welcome{top:43%;max-height:calc(100dvh - 76px);padding:10px 14px;gap:8px}
+  .lineup-choice{aspect-ratio:1.5;padding:2px}
+  .welcome .start-camera{width:51px;height:51px}
+  .welcome .start-camera svg{width:25px;height:25px}
+  .welcome .demo-link{width:38px;height:38px}
+  .welcome .selector-close{margin:-4px -6px -6px 0}
+}
+@media(min-width:768px) and (orientation:landscape){
+  .welcome{width:min(608px,66vw);max-height:calc(100dvh - 60px);top:46%;padding:20px 25px}
+  .lineup-choice{aspect-ratio:1.2}
+  .photo-review .review-actions{position:absolute;right:max(30px,env(safe-area-inset-right));bottom:max(27px,env(safe-area-inset-bottom))}
+}

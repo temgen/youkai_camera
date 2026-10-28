@@ -25,24 +25,72 @@
     experience: $('experience'), scene: $('scene'), video: $('camera'), canvas: $('yokaiCanvas'),
     backdrop: $('demoBackdrop'), status: $('cameraStatus'), statusText: $('cameraStatusText'),
     welcome: $('welcome'), start: $('startCamera'), demo: $('watchDemo'), retry: $('cameraRetry'),
+    lineupGrid: $('lineupGrid'), closeSelector: $('closeSelector'),
     flip: $('flipCamera'), modes: document.querySelector('.capture-modes'), shuffle: $('shuffle'), shutter: $('shutter'),
     skill: $('skillMessage'), toast: $('toast'), review: $('photoReview'), captured: $('capturedPhoto'),
     capturedVideo: $('capturedVideo'), reviewTitle: $('reviewTitle'), reviewNote: $('reviewNote'),
     recordingIndicator: $('recordingIndicator'), recordingTime: $('recordingTime'), hint: $('cameraHint'),
-    save: $('savePhoto'), close: $('closeReview'), flash: $('flash')
+    save: $('savePhoto'), download: $('downloadPhoto'), close: $('closeReview'), flash: $('flash')
   };
   const ctx = el.canvas.getContext('2d', { alpha: true });
   const random = (min, max) => min + Math.random() * (max - min);
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const smooth = n => n * n * (3 - 2 * n);
+  const selectionStorageKey = 'yokai-camera-selected-v4';
+  const defaultSelection = ['umbrella', 'kappa', 'ittanmomen', 'tengu'];
+  let savedSelection = defaultSelection;
+  try {
+    const value = JSON.parse(localStorage.getItem(selectionStorageKey));
+    if (Array.isArray(value) && value.length <= YOKAI.length && value.every(id => YOKAI.some(y => y.id === id))) {
+      savedSelection = value;
+    }
+  } catch (_) { /* Browsers with restricted storage can still use the selector. */ }
   const state = {
-    count: 3 + Math.floor(Math.random() * 3), width: 1, height: 1, dpr: 1,
+    count: savedSelection.length, selectedIds: new Set(savedSelection), hasEntered: false,
+    width: 1, height: 1, dpr: 1,
     actors: [], particles: [], facing: 'environment', stream: null,
     cameraReady: false, cameraBusy: false, images: new Map(), mode: 'photo',
     recorder: null, recording: false, recordingStarted: 0, lastComposite: 0, recordingCanvas: null,
     recordingContext: null, recordingStream: null, chunks: [],
-    lastTime: performance.now(), skillUntil: 0, toastTimer: 0, reviewUrl: null
+    lastTime: performance.now(), skillUntil: 0, toastTimer: 0, reviewUrl: null,
+    reviewBlob: null, reviewFilename: '', reviewMime: ''
   };
+
+  function renderLineupSelector() {
+    for (const y of YOKAI) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lineup-choice';
+      button.dataset.yokaiId = y.id;
+      button.innerHTML = `<img src="images/${y.id}.png" alt="" draggable="false"><span class="lineup-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 5 5L19 7"/></svg></span>`;
+      el.lineupGrid.append(button);
+    }
+    updateLineupSelector();
+  }
+
+  function updateLineupSelector() {
+    for (const button of el.lineupGrid.querySelectorAll('button[data-yokai-id]')) {
+      const y = YOKAI.find(item => item.id === button.dataset.yokaiId);
+      const chosen = state.selectedIds.has(y.id);
+      button.setAttribute('aria-pressed', String(chosen));
+      button.setAttribute('aria-label', `${y.name}：${chosen ? '登場する' : '登場しない'}`);
+    }
+  }
+
+  function openSelector() {
+    if (state.recording) return;
+    el.welcome.classList.toggle('is-editing', state.hasEntered);
+    el.closeSelector.hidden = !state.hasEntered;
+    updateLineupSelector();
+    el.welcome.hidden = false;
+    el.lineupGrid.querySelector('button')?.focus();
+  }
+
+  function closeSelector() {
+    if (!state.hasEntered) return;
+    el.welcome.hidden = true;
+    el.shuffle.focus();
+  }
 
   for (const y of YOKAI) {
     const img = new Image();
@@ -89,6 +137,7 @@
       el.video.srcObject = stream;
       await el.video.play();
       setCameraUI(true);
+      state.hasEntered = true;
       el.welcome.hidden = true;
       showToast('カメラに ようかいが あらわれた！');
     } catch (error) {
@@ -177,14 +226,10 @@
   }
 
   function createLineup() {
-    state.count = 3 + Math.floor(Math.random() * 3);
-    const pool = [...YOKAI];
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    state.actors = pool.slice(0, state.count).map((y, i) => {
-      const base = clamp(state.width * .255, 78, 142);
+    const pool = YOKAI.filter(y => state.selectedIds.has(y.id));
+    state.count = pool.length;
+    state.actors = pool.map((y, i) => {
+      const base = clamp(state.width * .255, 78, 142) * Math.min(1, Math.sqrt(5 / state.count));
       const a = {
         ...y, size: base * y.size * random(.83, 1.13),
         x: state.width * ((i + .7) / (state.count + .4)),
@@ -199,7 +244,7 @@
       return a;
     });
     for (const a of state.actors) chooseDestination(a);
-    spawnBurst(state.width * .5, state.height * .48, '#ffe3a7', 24, .7);
+    if (state.count) spawnBurst(state.width * .5, state.height * .48, '#ffe3a7', 24, .7);
   }
 
   function spawnBurst(x, y, color, count = 14, power = 1) {
@@ -400,19 +445,45 @@
       el.capturedVideo.src = state.reviewUrl;
       el.capturedVideo.load();
       el.reviewTitle.textContent = '動画がとれたよ！ 🎬';
-      el.reviewNote.textContent = '動画を保存して、端末の「ファイル」などから確認してね';
+      el.reviewNote.textContent = '共有ボタンから「ビデオを保存」を選ぶと、写真アプリに保存できます。';
     } else {
       el.capturedVideo.pause();
       el.capturedVideo.removeAttribute('src');
       el.captured.src = state.reviewUrl;
       el.reviewTitle.textContent = '写真がとれたよ！ 📸';
-      el.reviewNote.textContent = '写真を保存してね';
+      el.reviewNote.textContent = '共有ボタンから「画像を保存」を選ぶと、写真アプリに保存できます。';
     }
-    el.save.href = state.reviewUrl;
-    el.save.download = `yokai-camera-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.${extension}`;
-    el.save.setAttribute('aria-label', isVideo ? '動画を保存する' : '写真を保存する');
+    state.reviewBlob = blob;
+    state.reviewFilename = `yokai-camera-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.${extension}`;
+    state.reviewMime = extension === 'png' ? 'image/png' : extension === 'mp4' ? 'video/mp4' : 'video/webm';
+    el.download.href = state.reviewUrl;
+    el.download.download = state.reviewFilename;
+    const shareAvailable = typeof navigator.share === 'function' && typeof File === 'function';
+    el.save.classList.toggle('download-only', !shareAvailable);
+    el.save.setAttribute('aria-label', shareAvailable ? `${isVideo ? 'ビデオ' : '写真'}の共有メニューを開く` : `${isVideo ? 'ビデオ' : '写真'}をダウンロードする`);
+    el.save.title = shareAvailable ? '写真アプリへの保存・共有' : 'ファイルに保存';
     el.review.hidden = false;
     el.close.focus();
+  }
+
+  async function shareCapturedFile() {
+    if (!state.reviewBlob) return;
+    if (typeof navigator.share === 'function' && typeof File === 'function') {
+      const file = new File([state.reviewBlob], state.reviewFilename, { type: state.reviewMime });
+      const shareData = { files: [file] };
+      try {
+        if (typeof navigator.canShare !== 'function' || navigator.canShare(shareData)) {
+          // Call from the tap handler, before any await, so iPadOS allows the share sheet.
+          await navigator.share(shareData);
+          return;
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+    // Some browsers do not support file sharing; keep a one-tap file fallback.
+    el.download.click();
+    showToast('共有に対応していないため、ファイルとして保存します。', 4200);
   }
 
   async function capturePhoto() {
@@ -519,7 +590,7 @@
 
   el.start.addEventListener('click', startCamera);
   el.retry.addEventListener('click', startCamera);
-  el.demo.addEventListener('click', () => { el.welcome.hidden = true;showToast('デモモードだよ。撮影にはカメラを起動してね。', 3500); });
+  el.demo.addEventListener('click', () => { state.hasEntered = true;el.welcome.hidden = true;showToast('デモモードだよ。撮影にはカメラを起動してね。', 3500); });
   el.flip.addEventListener('click', async () => {
     if (!state.cameraReady || state.cameraBusy) return;
     const previous = state.facing;
@@ -537,10 +608,21 @@
     state.mode = button.dataset.mode;
     updateModeButtons();
   });
-  el.shuffle.addEventListener('click', () => {
-    createLineup();showToast(`ようかい ${state.count}たいに いれかえたよ！`);
+  el.shuffle.addEventListener('click', openSelector);
+  el.closeSelector.addEventListener('click', closeSelector);
+  el.lineupGrid.addEventListener('click', event => {
+    const button = event.target.closest('button[data-yokai-id]');
+    if (!button) return;
+    const id = button.dataset.yokaiId;
+    if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+    else state.selectedIds.add(id);
+    try { localStorage.setItem(selectionStorageKey, JSON.stringify([...state.selectedIds])); }
+    catch (_) { /* Selection remains available in this session. */ }
+    updateLineupSelector();
+    createLineup();
   });
   el.shutter.addEventListener('click', pressShutter);
+  el.save.addEventListener('click', shareCapturedFile);
   el.close.addEventListener('click', closeReview);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !el.review.hidden) closeReview();
@@ -553,6 +635,7 @@
   setCameraUI(false);
   updateModeButtons();
   resize();
+  renderLineupSelector();
   createLineup();
   requestAnimationFrame(tick);
 })();

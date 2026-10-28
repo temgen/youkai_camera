@@ -9,7 +9,9 @@
     { id: 'gashadokuro', name: 'がしゃどくろ', emoji: '💀', speed: .72, sway: .55, size: 1.22 },
     { id: 'tengu', name: 'からすてんぐ', emoji: '👺', speed: 1.35, sway: 1.45, size: 1.15 },
     { id: 'rokuro', name: 'ろくろくび', emoji: '👘', speed: .97, sway: 1.25, size: 1.01 },
-    { id: 'nurikabe', name: 'ぬりかべ', emoji: '🪨', speed: .68, sway: .5, size: 1.18 }
+    { id: 'nurikabe', name: 'ぬりかべ', emoji: '🪨', speed: .68, sway: .5, size: 1.18 },
+    { id: 'raijin', name: '雷神', emoji: '⚡', speed: 1.22, sway: 1.32, size: 1.14 },
+    { id: 'fujin', name: '風神', emoji: '🌪️', speed: 1.16, sway: 1.68, size: 1.1 }
   ];
   const TECHNIQUES = [
     { id: 'comet', name: 'きらきらダッシュ', color: '#88faff', duration: 1.55 },
@@ -37,7 +39,7 @@
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const smooth = n => n * n * (3 - 2 * n);
   const selectionStorageKey = 'yokai-camera-selected-v4';
-  const defaultSelection = ['umbrella', 'kappa', 'ittanmomen', 'tengu'];
+  const defaultSelection = ['umbrella', 'kappa', 'ittanmomen', 'raijin', 'fujin'];
   let savedSelection = defaultSelection;
   try {
     const value = JSON.parse(localStorage.getItem(selectionStorageKey));

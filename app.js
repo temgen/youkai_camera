@@ -49,7 +49,7 @@
   } catch (_) { /* Browsers with restricted storage can still use the selector. */ }
   const state = {
     count: savedSelection.length, selectedIds: new Set(savedSelection), hasEntered: false,
-    width: 1, height: 1, dpr: 1,
+    width: 1, height: 1, dpr: 1, zoom: 1,
     actors: [], particles: [], facing: 'environment', stream: null,
     cameraReady: false, cameraBusy: false, images: new Map(), mode: 'photo',
     recorder: null, recording: false, recordingStarted: 0, lastComposite: 0, recordingCanvas: null,
@@ -195,6 +195,53 @@
       a.x *= ratioX; a.tx *= ratioX; a.y *= ratioY; a.ty *= ratioY;
       a.vx *= ratioX; a.vy *= ratioY;
     }
+  }
+
+  // Digital zoom affects the camera feed, not the floating yokai or controls.
+  // The same crop is applied to still photos and recorded video in drawComposite.
+  const pinch = { distance: 0, startZoom: 1 };
+  function setZoom(value) {
+    state.zoom = clamp(value, 1, 3);
+    el.scene.style.setProperty('--camera-zoom', String(state.zoom));
+  }
+
+  function touchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  function beginPinch(touches) {
+    if (touches.length < 2) return;
+    pinch.distance = Math.max(1, touchDistance(touches));
+    pinch.startZoom = state.zoom;
+  }
+
+  el.scene.addEventListener('touchstart', event => {
+    if (event.touches.length >= 2) {
+      if (event.cancelable) event.preventDefault();
+      beginPinch(event.touches);
+    }
+  }, { passive: false });
+
+  el.scene.addEventListener('touchmove', event => {
+    // Prevent the page from dragging, rubber-banding or invoking browser zoom.
+    if (event.cancelable) event.preventDefault();
+    if (event.touches.length < 2) { pinch.distance = 0; return; }
+    if (!pinch.distance) beginPinch(event.touches);
+    setZoom(pinch.startZoom * touchDistance(event.touches) / pinch.distance);
+  }, { passive: false });
+
+  const finishPinch = event => {
+    if (event.touches.length < 2) pinch.distance = 0;
+  };
+  el.scene.addEventListener('touchend', finishPinch);
+  el.scene.addEventListener('touchcancel', finishPinch);
+  // WebKit also exposes legacy gesture events on some iPadOS versions.
+  for (const name of ['gesturestart', 'gesturechange']) {
+    el.scene.addEventListener(name, event => {
+      if (event.cancelable) event.preventDefault();
+    }, { passive: false });
   }
 
   function movementBounds(a) {
@@ -427,7 +474,7 @@
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw || !vh) return;
     const scale = Math.max(outW / vw, outH / vh);
-    const cropW = outW / scale, cropH = outH / scale;
+    const cropW = outW / (scale * state.zoom), cropH = outH / (scale * state.zoom);
     const sx = (vw - cropW) / 2, sy = (vh - cropH) / 2;
     c.clearRect(0, 0, outW, outH);
     c.save();
@@ -637,6 +684,7 @@
   setCameraUI(false);
   updateModeButtons();
   resize();
+  setZoom(1);
   renderLineupSelector();
   createLineup();
   requestAnimationFrame(tick);

@@ -75,7 +75,7 @@
     if (state.cameraBusy) return;
     state.cameraBusy = true;
     el.start.disabled = true;
-    el.start.textContent = 'カメラを準備中…';
+    el.start.classList.add('busy');
     try {
       if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
         throw new Error('安全な接続（HTTPS）のブラウザで開いてください');
@@ -103,7 +103,7 @@
     } finally {
       state.cameraBusy = false;
       el.start.disabled = false;
-      el.start.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-2h4l2 2h4v12H4z"/><circle cx="12" cy="13" r="3.4"/></svg>カメラをはじめる';
+      el.start.classList.remove('busy');
     }
   }
 
@@ -123,7 +123,6 @@
     el.shutter.classList.toggle('recording', state.recording);
     const shutterLabel = state.recording ? '動画撮影を停止する' : state.mode === 'video' ? '動画撮影を開始する' : '写真を撮影する';
     el.shutter.setAttribute('aria-label', shutterLabel);
-    el.shutter.title = shutterLabel;
     el.hint.textContent = state.mode === 'video' ? '✦ 妖怪といっしょに動画を撮ろう（最大60秒）' : '✦ 妖怪といっしょに写真を撮ろう';
     el.shuffle.disabled = state.recording;
     el.flip.disabled = !state.cameraReady || state.recording;
@@ -411,7 +410,7 @@
     }
     el.save.href = state.reviewUrl;
     el.save.download = `yokai-camera-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.${extension}`;
-    el.save.textContent = isVideo ? '動画を保存する ↓' : '写真を保存する ↓';
+    el.save.setAttribute('aria-label', isVideo ? '動画を保存する' : '写真を保存する');
     el.review.hidden = false;
     el.close.focus();
   }

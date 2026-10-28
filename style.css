@@ -192,3 +192,8 @@ html,body{height:100%;height:100dvh;overflow:hidden}
   .lineup-choice{aspect-ratio:1.2}
   .photo-review .review-actions{position:absolute;right:max(30px,env(safe-area-inset-right));bottom:max(27px,env(safe-area-inset-bottom))}
 }
+
+/* v5 — ten character choices fit into two rows on iPad. */
+@media(min-width:600px){
+  .lineup-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+}

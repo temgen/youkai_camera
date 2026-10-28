@@ -87,3 +87,49 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--mint);outline-offse
 .photo-frame img[hidden],.photo-frame video[hidden]{display:none}
 .photo-review .photo-frame{padding:6px}
 @media(max-height:650px){.capture-modes{height:18px}.camera-row{margin-top:8px}.recording-indicator{top:calc(max(14px,env(safe-area-inset-top)) + 92px)}}
+
+/* v3 — no visible text; full-screen camera on both iPhone and landscape iPad. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+html,body{height:100%;height:100dvh;overflow:hidden}
+.experience{position:fixed;inset:0;width:100vw;max-width:none;height:100vh;height:100dvh;box-shadow:none}
+.scene-vignette{background:linear-gradient(180deg,#150e292b 0,transparent 25%,transparent 63%,#130d2a70 100%)}
+.welcome{top:50%;width:170px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px 14px 16px;border-radius:28px;background:#21182ca8;border-color:#ffffff4b;box-shadow:0 10px 50px #0006;backdrop-filter:blur(12px)}
+.welcome .start-camera{display:grid;place-items:center;width:90px;height:90px;min-height:0;border:3px solid #fff7d7;border-radius:50%;background:linear-gradient(145deg,#fff2d2,#ffc872);box-shadow:0 4px 22px #0006;color:#543352}
+.welcome .start-camera svg{width:43px;height:43px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.welcome .demo-link{display:grid;place-items:center;width:46px;height:46px;margin:0;padding:8px;border:1px solid #ffffff77;border-radius:50%;background:#ffffff20;color:#fff4d5;text-decoration:none}
+.welcome .demo-link svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.control-dock{padding:18px 22px max(18px,env(safe-area-inset-bottom));border:0;background:linear-gradient(180deg,transparent,#100c20a8 38%,#100c20d4);box-shadow:none;backdrop-filter:none}
+.capture-modes{height:37px;gap:12px}
+.capture-modes button{display:grid;place-items:center;width:48px;height:38px;padding:6px;color:#ffffffb8;border:1px solid transparent;border-radius:13px}
+.capture-modes button[aria-pressed="true"]{background:#ffffff30;color:#fff2ce;border:1px solid #ffffff88}
+.capture-modes svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.camera-row{width:min(460px,100%);margin:10px auto 0;gap:20px}
+.camera-row .shuffle-button{width:58px;height:58px;justify-self:center;padding:0;border:1px solid #ffffff45;border-radius:50%;background:#241c397e}
+.camera-row .shuffle-button svg{width:27px;height:27px}
+.right-camera-actions{min-width:58px}
+.flip-button,.camera-retry{display:grid;place-items:center;width:58px;height:58px;padding:0;border:1px solid #ffffff45;border-radius:50%;background:#241c397e;color:white}
+.flip-button svg,.camera-retry svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.camera-retry[hidden]{display:none}
+.shutter{width:82px;height:82px;box-shadow:0 0 0 3px #0003,0 5px 20px #0005}
+.shutter span{width:65px;height:65px}
+.recording-indicator{top:max(21px,env(safe-area-inset-top));right:max(22px,env(safe-area-inset-right));left:auto;transform:none;width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid #ffffff7a;border-radius:50%;background:#160e26a6}
+.recording-dot{width:12px;height:12px}
+.photo-review{padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom));gap:12px;background:#120f1ef7}
+.photo-head{position:absolute;z-index:2;right:max(20px,env(safe-area-inset-right));top:max(20px,env(safe-area-inset-top))}
+.photo-head button{display:grid;place-items:center;width:44px;height:44px;padding:9px;border:1px solid #ffffff83;border-radius:50%;background:#201831bb}
+.photo-head button svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.photo-frame{flex:1;min-height:0;margin:0;padding:4px;border:0;background:transparent}
+.save-photo{display:grid;place-items:center;align-self:center;width:64px;height:64px;min-height:0;border-radius:50%;background:#f8d38d;color:#5b3558}
+.save-photo svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:420px){.welcome{padding:20px 12px 15px}.camera-row{gap:8px}.control-dock{padding:12px 12px max(14px,env(safe-area-inset-bottom))}}
+@media(max-height:570px){.welcome{top:48%;padding:12px;gap:7px}.welcome .start-camera{width:65px;height:65px}.welcome .start-camera svg{width:32px;height:32px}.welcome .demo-link{width:36px;height:36px}.capture-modes{height:32px}.control-dock{padding-top:8px;padding-bottom:max(7px,env(safe-area-inset-bottom))}.camera-row{margin-top:6px}.shutter{width:63px;height:63px}.shutter span{width:48px;height:48px}.camera-row .shuffle-button,.flip-button,.camera-retry{width:45px;height:45px}}
+@media(min-width:768px) and (orientation:landscape){
+  .experience{width:100vw;height:100dvh}
+  .control-dock{left:50%;right:auto;bottom:max(22px,env(safe-area-inset-bottom));width:min(470px,52vw);transform:translateX(-50%);padding:12px 26px 16px;border:1px solid #ffffff36;border-radius:32px;background:#171127b8;backdrop-filter:blur(12px)}
+  .capture-modes{height:36px}
+  .camera-row{width:100%;margin-top:10px}
+  .welcome{width:182px}
+  .photo-review{padding:20px 28px}
+  .photo-frame{margin:8px auto 0;width:min(86vw,1100px)}
+  .save-photo{position:absolute;right:max(28px,env(safe-area-inset-right));bottom:max(28px,env(safe-area-inset-bottom))}
+}
